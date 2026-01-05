@@ -12,7 +12,7 @@ BG_COLOR = (28, 28, 30)
 DOT_COLOR_ACTIVE = (255, 105, 60)   # Orange (Today)
 DOT_COLOR_PASSED = (255, 255, 255)  # White (Passed days)
 DOT_COLOR_INACTIVE = (68, 68, 70)   # Dim gray (Future days)
-DOT_COLOR_SPECIAL = (255, 215, 0)   # Gold/Yellow (For March 2nd)
+DOT_COLOR_SPECIAL = (255, 215, 0)   # Gold/Yellow (Special dates)
 TEXT_COLOR = (255, 255, 255)
 
 FONT_PATH = "fonts/Roboto-Regular.ttf"
@@ -32,11 +32,26 @@ current_day_of_year = now.timetuple().tm_yday
 
 days_left = total_days_in_year - current_day_of_year
 
-# Calculate the day number for March 2nd
-march_2_date = datetime.date(current_year, 3, 2)
-march_2_day_of_year = march_2_date.timetuple().tm_yday
+# --- Special Dates Configuration ---
+# Add your special dates here: (Month, Day)
+special_dates_config = [
+    (3, 2),   # March 2nd
+    (4, 29),  # April 29th
+    (12, 10)  # December 10th
+]
 
-print(f"Generating image for Day {current_day_of_year}. March 2 is Day {march_2_day_of_year}.")
+# Convert these dates to "Day of Year" numbers (1-366)
+special_days_indices = []
+for month, day in special_dates_config:
+    try:
+        d = datetime.date(current_year, month, day)
+        special_days_indices.append(d.timetuple().tm_yday)
+    except ValueError:
+        # Handles edge cases (like Feb 29 on non-leap years)
+        pass
+
+print(f"Generating image for Day {current_day_of_year}.")
+print(f"Special days are at indices: {special_days_indices}")
 
 # --- Image Generation ---
 
@@ -65,18 +80,22 @@ for row in range(GRID_ROWS):
             break
 
         # --- Color Logic ---
-        # 1. Check for Special Date first (March 2nd) -> Yellow
-        if dot_count == march_2_day_of_year:
+        
+        # 1. Check for Special Dates (Yellow)
+        # Note: This checks strictly if the dot IS a special day.
+        # It currently overrides "Today" (Orange). If today is a special day, it will show Yellow.
+        if dot_count in special_days_indices:
             color = DOT_COLOR_SPECIAL
-        # 2. Check for Today -> Orange (Overrides Yellow if today IS March 2nd? 
-        #    If you want Yellow to be permanent even on that day, remove the 'elif' below and keep order)
-        #    Current logic: Today (Orange) will override Yellow if it is currently March 2nd.
+            
+        # 2. Check for Today (Orange)
         elif dot_count == current_day_of_year:
             color = DOT_COLOR_ACTIVE
-        # 3. Check for Past -> White
+            
+        # 3. Check for Past (White)
         elif dot_count < current_day_of_year:
             color = DOT_COLOR_PASSED
-        # 4. Future -> Gray
+            
+        # 4. Future (Gray)
         else:
             color = DOT_COLOR_INACTIVE
 
