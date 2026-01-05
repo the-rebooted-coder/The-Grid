@@ -4,11 +4,11 @@ on:
   # Schedule to run at 18:30 UTC daily (which is 00:00 IST)
   schedule:
     - cron: '30 18 * * *'
-  # Allow manual triggering from the Actions tab for testing
+  # Allow manual triggering
   workflow_dispatch:
 
 permissions:
-  contents: write # Needed to commit the image back to the repo
+  contents: write
 
 jobs:
   build-and-update:
@@ -21,7 +21,7 @@ jobs:
       - name: Setup Python
         uses: actions/setup-python@v5
         with:
-          python-version: '3.x'
+          python-version: '3.12'  # <--- CHANGED FROM '3.x' TO '3.12'
 
       - name: Install dependencies
         run: |
@@ -36,6 +36,5 @@ jobs:
           git config user.name "GitHub Actions Bot"
           git config user.email "<>"
           git add daily_status.png
-          # Only commit if the file has actually changed
           git diff --staged --quiet || git commit -m "Automated daily image update [skip ci]"
           git push
