@@ -7,9 +7,13 @@ import os
 IMAGE_WIDTH = 1170  # roughly iPhone resolution width
 IMAGE_HEIGHT = 2532 # roughly iPhone resolution height
 BG_COLOR = (28, 28, 30) # Dark mode background gray
-DOT_COLOR_ACTIVE = (255, 105, 60) # Orange
-DOT_COLOR_INACTIVE = (68, 68, 70) # Dim gray
-TEXT_COLOR = (255, 255, 255)
+
+# Color definitions
+DOT_COLOR_ACTIVE = (255, 105, 60)   # Orange (For the CURRENT day)
+DOT_COLOR_PASSED = (255, 255, 255)  # White (For days that have PASSED)
+DOT_COLOR_INACTIVE = (68, 68, 70)   # Dim gray (For FUTURE days)
+TEXT_COLOR = (255, 255, 255)        # For bottom text
+
 FONT_PATH = "fonts/Roboto-Regular.ttf" # Path to your uploaded font
 
 # Grid configuration
@@ -19,7 +23,13 @@ DOT_RADIUS = 18
 DOT_PADDING = 22 # Space between dots
 
 # --- Date Calculations ---
+# Use UTC now so it matches the server time convention used in the workflow
 now = datetime.datetime.utcnow()
+
+# Option: If you want to force it to IST time for the calculation, uncomment below:
+# ist_offset = datetime.timedelta(hours=5, minutes=30)
+# now = datetime.datetime.utcnow() + ist_offset
+
 current_year = now.year
 is_leap = calendar.isleap(current_year)
 total_days_in_year = 366 if is_leap else 365
@@ -37,19 +47,14 @@ draw = ImageDraw.Draw(img)
 
 # Load fonts
 try:
+    # font_large is no longer used but left here if needed later
     font_large = ImageFont.truetype(FONT_PATH, 240)
     font_small = ImageFont.truetype(FONT_PATH, 40)
 except IOError:
     print("ERROR: Font file not found. Please ensure fonts/Roboto-Regular.ttf exists.")
     exit(1)
 
-# 2. Draw "Fake" Time at top (Just for aesthetics to match the reference image)
-time_text = "12:00"
-# Calculate width to center it
-bbox = draw.textbbox((0, 0), time_text, font=font_large)
-text_width = bbox[2] - bbox[0]
-draw.text(((IMAGE_WIDTH - text_width) / 2, 200), time_text, font=font_large, fill=TEXT_COLOR)
-
+# 2. (Removed Time display section)
 
 # 3. Draw the Grid of Dots
 # Calculate total grid size to center it
@@ -57,21 +62,27 @@ total_grid_width = (GRID_COLS * (DOT_RADIUS * 2)) + ((GRID_COLS - 1) * DOT_PADDI
 total_grid_height = (GRID_ROWS * (DOT_RADIUS * 2)) + ((GRID_ROWS - 1) * DOT_PADDING)
 
 start_x = (IMAGE_WIDTH - total_grid_width) // 2
-start_y = (IMAGE_HEIGHT - total_grid_height) // 2 + 100 # slightly offset downwards
+# Offset downwards slightly to account for the missing time text space
+start_y = (IMAGE_HEIGHT - total_grid_height) // 2 + 100 
 
 dot_count = 0
 for row in range(GRID_ROWS):
     for col in range(GRID_COLS):
         dot_count += 1
         
-        # Stop if we exceed total days in the year (e.g., if grid is 400 but year is 365)
+        # Stop if we exceed total days in the year
         if dot_count > total_days_in_year:
             break
 
-        # Determine color based on whether the day has passed
-        if dot_count <= current_day_of_year:
+        # --- New Color Logic ---
+        if dot_count < current_day_of_year:
+            # Days in the past are White
+            color = DOT_COLOR_PASSED
+        elif dot_count == current_day_of_year:
+            # The current day is Orange
             color = DOT_COLOR_ACTIVE
         else:
+            # Future days are Gray
             color = DOT_COLOR_INACTIVE
 
         # Calculate position
@@ -86,7 +97,7 @@ bottom_text = f"{days_left}d left"
 # Center the text at the bottom
 bbox_small = draw.textbbox((0, 0), bottom_text, font=font_small)
 small_text_width = bbox_small[2] - bbox_small[0]
-# Position near the bottom
+# Position near the bottom, using the Active/Orange color
 draw.text(((IMAGE_WIDTH - small_text_width) / 2, IMAGE_HEIGHT - 200), bottom_text, font=font_small, fill=DOT_COLOR_ACTIVE)
 
 # --- Save ---
