@@ -52,7 +52,7 @@ Wanna do it the hard way.
 
 1.  **Steal the URL:**
     ```
-    https://the-rebooted-coder.github.io/Daily-Dots-Widget/daily_status.png
+    https://the-rebooted-coder.github.io/The-Grid/daily_status.png
     ```
 2.  **Paste it:** Use it in any widget app, dashboard, or browser tab.
 3.  **Forget it:** We handle the updates.
