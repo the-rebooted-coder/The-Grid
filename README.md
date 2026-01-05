@@ -29,7 +29,7 @@ We made an iOS Shortcut that fetches the grid and sets it as your background aut
 ### Step 1: Get the Tool
 Download the shortcut. It does the heavy lifting so you don't have to.
 
-👉 **[Download the Shortcut](https://www.icloud.com/shortcuts/bc4d384f2617464d9c98d5f0653d1cbe)**
+👉 **[Download the Shortcut](https://www.icloud.com/shortcuts/8963d7263edd4c3c8ca6543e52d2b260)**
 
 ### Step 2: Automate It
 You have an iPhone. Make it work for you.
