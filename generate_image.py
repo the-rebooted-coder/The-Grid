@@ -33,7 +33,7 @@ current_day_of_year = now.timetuple().tm_yday
 
 days_left = total_days_in_year - current_day_of_year
 
-# --- Special Dates Logic (User Friendly) ---
+# --- Special Dates Logic ---
 env_dates = os.environ.get("SPECIAL_DATES", "")
 special_days_indices = []
 
@@ -54,8 +54,6 @@ if env_dates:
             pass
 
 print(f"Generating image for Day {current_day_of_year}.")
-if special_days_indices:
-    print(f"Special days loaded from settings: {special_days_indices}")
 
 # --- Image Generation ---
 
@@ -68,7 +66,7 @@ except IOError:
     print("ERROR: Font file not found. Please ensure fonts/Roboto-Regular.ttf exists.")
     exit(1)
 
-# Draw the Grid
+# 1. Draw the Grid
 total_grid_width = (GRID_COLS * (DOT_RADIUS * 2)) + ((GRID_COLS - 1) * DOT_PADDING)
 total_grid_height = (GRID_ROWS * (DOT_RADIUS * 2)) + ((GRID_ROWS - 1) * DOT_PADDING)
 
@@ -98,39 +96,56 @@ for row in range(GRID_ROWS):
 
         draw.ellipse((x, y, x + DOT_RADIUS * 2, y + DOT_RADIUS * 2), fill=color)
 
-# --- Bottom Info ---
-
-# 1. Text: "X days left"
+# 2. Draw Bottom Text
 bottom_text = f"{days_left}d left"
 bbox_text = draw.textbbox((0, 0), bottom_text, font=font_small)
 text_width = bbox_text[2] - bbox_text[0]
 text_x = (IMAGE_WIDTH - text_width) / 2
-text_y = IMAGE_HEIGHT - 200
+text_y = IMAGE_HEIGHT - 220 # Moved up slightly to make room for bar
 
 draw.text((text_x, text_y), bottom_text, font=font_small, fill=DOT_COLOR_ACTIVE)
 
-# 2. Progress Bar: "███░░░░░░░"
-BAR_LENGTH = 10
-progress_ratio = current_day_of_year / total_days_in_year
-filled_blocks = int(progress_ratio * BAR_LENGTH)
+# 3. Draw Progress Bar (Geometrically)
+# Instead of ASCII text, we draw rectangles. It looks better and never fails.
 
-# --- The "Generous" Fix: Force at least 1 block if year has started ---
+BAR_TOTAL_WIDTH = 600   # Total width of the progress bar in pixels
+BAR_HEIGHT = 24         # Height of the blocks
+BAR_BLOCKS = 10         # Number of blocks (10 blocks = 10% each)
+BLOCK_GAP = 12          # Space between blocks
+
+# Calculate the width of a single block
+total_gap_width = (BAR_BLOCKS - 1) * BLOCK_GAP
+single_block_width = (BAR_TOTAL_WIDTH - total_gap_width) / BAR_BLOCKS
+
+# Logic for how many blocks to fill
+progress_ratio = current_day_of_year / total_days_in_year
+filled_blocks = int(progress_ratio * BAR_BLOCKS)
+
+# The "Generous" Fix: If year has started, show at least 1 block
 if current_day_of_year > 0 and filled_blocks == 0:
     filled_blocks = 1
-# ----------------------------------------------------------------------
 
-empty_blocks = BAR_LENGTH - filled_blocks
+print(f"DEBUG: Filled Blocks: {filled_blocks} / 10")
 
-# Construct the ASCII string
-progress_bar_str = ("█" * filled_blocks) + ("░" * empty_blocks)
+# Center the bar horizontally
+bar_start_x = (IMAGE_WIDTH - BAR_TOTAL_WIDTH) / 2
+bar_start_y = text_y + 80 # 80 pixels below the text
 
-# Calculate position to center it below the text
-bbox_bar = draw.textbbox((0, 0), progress_bar_str, font=font_small)
-bar_width = bbox_bar[2] - bbox_bar[0]
-bar_x = (IMAGE_WIDTH - bar_width) / 2
-bar_y = text_y + 55  # 55 pixels below the text
-
-draw.text((bar_x, bar_y), progress_bar_str, font=font_small, fill=DOT_COLOR_ACTIVE)
+for i in range(BAR_BLOCKS):
+    # Calculate coordinates for this block
+    b_x1 = bar_start_x + i * (single_block_width + BLOCK_GAP)
+    b_y1 = bar_start_y
+    b_x2 = b_x1 + single_block_width
+    b_y2 = bar_start_y + BAR_HEIGHT
+    
+    # Determine color
+    if i < filled_blocks:
+        color = DOT_COLOR_ACTIVE     # Orange
+    else:
+        color = DOT_COLOR_INACTIVE   # Gray
+        
+    # Draw rounded rectangle
+    draw.rounded_rectangle((b_x1, b_y1, b_x2, b_y2), radius=8, fill=color)
 
 # Save
 img.save("daily_status.png")
