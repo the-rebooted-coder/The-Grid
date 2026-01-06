@@ -21,7 +21,7 @@ jobs:
       - name: Setup Python
         uses: actions/setup-python@v5
         with:
-          python-version: '3.12'  # <--- CHANGED FROM '3.x' TO '3.12'
+          python-version: '3.12'
 
       - name: Install dependencies
         run: |
@@ -29,6 +29,9 @@ jobs:
           pip install -r requirements.txt
 
       - name: Run image generation script
+        env:
+          # This connects the GitHub Repository Variable to the Python script
+          SPECIAL_DATES: ${{ vars.SPECIAL_DATES }}
         run: python generate_image.py
 
       - name: Commit and Push generated image

@@ -32,26 +32,39 @@ current_day_of_year = now.timetuple().tm_yday
 
 days_left = total_days_in_year - current_day_of_year
 
-# --- Special Dates Configuration ---
-# Add your special dates here: (Month, Day)
-special_dates_config = [
-    (3, 2),   # March 2nd
-    (4, 29),  # April 29th
-    (12, 10)  # December 10th
-]
+# --- Special Dates Logic (User Friendly) ---
+# We check for a GitHub Repository Variable named "SPECIAL_DATES"
+# Format expected: "03-02, 04-29, 12-10" (MM-DD)
+env_dates = os.environ.get("SPECIAL_DATES", "")
 
-# Convert these dates to "Day of Year" numbers (1-366)
 special_days_indices = []
-for month, day in special_dates_config:
-    try:
-        d = datetime.date(current_year, month, day)
-        special_days_indices.append(d.timetuple().tm_yday)
-    except ValueError:
-        # Handles edge cases (like Feb 29 on non-leap years)
-        pass
+
+if env_dates:
+    # Split the string by commas
+    date_strings = env_dates.split(',')
+    
+    for d_str in date_strings:
+        try:
+            # Clean up whitespace and split by hyphen
+            clean_str = d_str.strip()
+            parts = clean_str.split('-')
+            
+            if len(parts) == 2:
+                m, d = int(parts[0]), int(parts[1])
+                # Convert date to Day of Year (1-366)
+                try:
+                    date_obj = datetime.date(current_year, m, d)
+                    special_days_indices.append(date_obj.timetuple().tm_yday)
+                except ValueError:
+                    pass # Ignore invalid dates (e.g. Feb 30)
+        except ValueError:
+            pass
 
 print(f"Generating image for Day {current_day_of_year}.")
-print(f"Special days are at indices: {special_days_indices}")
+if special_days_indices:
+    print(f"Special days loaded from settings: {special_days_indices}")
+else:
+    print("No special dates found in settings (Environment Variable 'SPECIAL_DATES' is empty).")
 
 # --- Image Generation ---
 
@@ -82,8 +95,6 @@ for row in range(GRID_ROWS):
         # --- Color Logic ---
         
         # 1. Check for Special Dates (Yellow)
-        # Note: This checks strictly if the dot IS a special day.
-        # It currently overrides "Today" (Orange). If today is a special day, it will show Yellow.
         if dot_count in special_days_indices:
             color = DOT_COLOR_SPECIAL
             
