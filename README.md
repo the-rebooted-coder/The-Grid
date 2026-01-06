@@ -1,5 +1,3 @@
-# The Grid.
-
 ![Status: Operational](https://github.com/the-rebooted-coder/The-Grid/actions/workflows/generate_daily_image.yml/badge.svg)
 
 Time is linear. Your perception of it shouldn't be.
