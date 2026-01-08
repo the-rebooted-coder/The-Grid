@@ -73,7 +73,10 @@ total_grid_width = (GRID_COLS * (DOT_RADIUS * 2)) + ((GRID_COLS - 1) * DOT_PADDI
 total_grid_height = (GRID_ROWS * (DOT_RADIUS * 2)) + ((GRID_ROWS - 1) * DOT_PADDING)
 
 start_x = (IMAGE_WIDTH - total_grid_width) // 2
-start_y = (IMAGE_HEIGHT - total_grid_height) // 2 + 50 # Adjusted slightly higher to center the whole group
+
+# --- POSITIONING FIX: Shifted down to avoid iOS Clock ---
+# Previously + 50, now + 180 to push it lower
+start_y = (IMAGE_HEIGHT - total_grid_height) // 2 + 180 
 
 dot_count = 0
 for row in range(GRID_ROWS):
@@ -99,7 +102,6 @@ for row in range(GRID_ROWS):
         draw.ellipse((x, y, x + DOT_RADIUS * 2, y + DOT_RADIUS * 2), fill=color)
 
 # --- Positioning Logic for Bottom Info ---
-# We calculate the Y position of the last row of dots to place text relative to it
 grid_bottom_y = start_y + total_grid_height
 
 # 2. Draw Text "X days left"
